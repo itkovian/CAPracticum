@@ -1,3 +1,9 @@
+ECHO=/bin/echo
+
+all:
+	@$(ECHO) "Gebruik een van de volgende targets: assembly, pract02, pract02_debug, pract02_opt, clean"
+	@$(ECHO) "Let op! assembly OVERSCHRIJFT pell.s!!!!!"
+
 assembly:
 	gcc -o pell.s -O0 -c -S pell.c
 pract02:
