@@ -707,7 +707,7 @@ stop:
 	ret
 
 ; --------------------
-; Private hulpfuncties
+; Publieke hulpfuncties
 ; --------------------
 
 
