@@ -593,7 +593,7 @@ PrintInfoTaakLoop:
 
 
 IdleTaak:
-        ; Schrijf naar het scherm dat de idle taak gebruikt wordt (Opgave 8)
+        ; Schrijf naar het scherm dat de idle taak gebruikt wordt (niet van toepassing in dit practicum)
         jmp     IdleTaak
 
 
@@ -664,9 +664,11 @@ schedulerhandler:
 
 ;================================= HULPFUNCTIES ==============================
 
-;
-; installeer de onderbrekingsroutine in ebx op vector eax
-; oproepen als install_handler(interruptvector, onderbrekingsroutine)
+; install_handler(interruptvector, onderbrekingsroutine)
+; installeer de onderbrekingsroutine
+; argumenten:
+;    interruptvector: nummer van de interrupt
+;    onderbrekingsroutine: adres van de corresponderende ISR
 install_handler:
 	mov	eax, [esp+4]
 	mov	edx, [esp+8]
@@ -679,13 +681,13 @@ install_handler:
  	ret
 
 
-;
+; printstring(adres, kol, rij)
 ; print een volledige string op het scherm totdat 0 bereikt wordt.
-; op de stapel staan, in deze volgorde
-;   rij op het scherm (0..24)
+; argumenten:
+;   adres van de nulgetermineerde string
 ;   kolom op het scherm (0..79)
-;   het adres van de nulgetermineerde string
-;
+;   rij op het scherm (0..24)
+; 
 printstring:
 	push	ebx
 	mov	eax,[esp+16]  ; rij
@@ -711,14 +713,14 @@ stop:
 ; --------------------
 
 
-; printint print een natuurlijk getal op het scherm
-; roep deze functie aan als printint(het getal, kolom, rij)
-; - rij op het scherm (0..24)
-; - kolom op het scherm (0..79)
-; het getal wordt omgezet in een stringvoorstelling die 
+; printint(het getal, kolom, rij)
+; print een natuurlijk getal op het scherm
+; argumenten:
+;   rij op het scherm (0..24)
+;   kolom op het scherm (0..79)
+; opmerking: het getal wordt omgezet in een stringvoorstelling die 
 ; gevisualiseerd wordt zonder leidende nullen.
 ;
-
 printint:
 	push	ebp
 	mov	ebp,esp
@@ -745,22 +747,23 @@ bindec: xor     edx,edx
 	pop	ebp
 	ret
 
-;
-; printhex print een 32 bit bitpatroon op het scherm in hex notatie
-; roep deze functie aan als printhex(het 32 bit patroon, kolom, rij)
-; - rij op het scherm (0..24)
-; - kolom op het scherm (0..79)
-; het getal wordt omgezet in hexadecimale voorstelling (8 tekens) die 
-; gevisualiseerd wordt 
+; printhex(het 32 bit patroon, kolom, rij)
+; rint een 32 bit bitpatroon op het scherm in hex notatie
+; argumenten:
+;    rij op het scherm (0..24)
+;    kolom op het scherm (0..79)
+; opmerking:het getal wordt omgezet in hexadecimale voorstelling 
+; (8 tekens) die gevisualiseerd wordt 
 ;
 
 printhex:
+	push	ebx
 	push	ebp
 	mov	ebp,esp
-	push	ebx
+	
 	sub	esp,12
 	mov 	ecx,7
-	mov     eax, [ebp+8]    ; argument
+	mov     eax, [ebp+12]    ; argument
 	mov	ebx,16
 	mov	byte [ebp-4],0
 binhex: xor     edx,edx
@@ -774,14 +777,15 @@ hex:	mov     [ebp-12+ecx],dl
 	dec	ecx
 	cmp	ecx,0
 	jge	binhex
-	push	dword [ebp+16]  ; rij
-	push	dword [ebp+12]  ; kolom
+	push	dword [ebp+20]  ; rij
+	push	dword [ebp+16]  ; kolom
 	push	ebp
 	sub	dword [esp],12
 	call	printstring
 	add	esp,24
 	pop	ebx
-	pop	ebp
+	leave
+	pop ebx
 	ret
 
 ; 
@@ -790,10 +794,12 @@ hex:	mov     [ebp-12+ecx],dl
 ;
 
 ShortDelay:
-        ; Opgave 3: hier slapen (bijvoorbeeld voor 100 ticks)
+        ; Deze functie wordt dit jaar niet gebruikt in de opgave
 	ret
 
+; --------------------
 ; Private hulpfuncties
+; --------------------
 
 ;
 ; print 1 letterteken op het scherm
