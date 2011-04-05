@@ -602,6 +602,7 @@ IdleTaak:
 creeertaak: ; Opgave 1
 ; voeg een taak toe aan de takenlijst
 ; oproepen als creeertaak(adres, stapel, wachttijd)
+; ....................
 	ret
 
 creeer_idle_taak: ; Niet van toepassing in dit practicum!
