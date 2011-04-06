@@ -300,7 +300,7 @@ IDTBase 	dd      IDTStart
 
 MAX_TAKEN equ 5
 
-STAPELGROOTTE equ 210
+STAPELGROOTTE equ 300
 
 ; Takenlijst is een lijst van MAX_TAKEN groot. Deze lijst bevat de top van 
 ; de stapel van de taak wanneer de taak niet aan het uitvoeren is. Indien 
