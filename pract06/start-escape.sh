@@ -1,1 +1,1 @@
-../../pract05/opgave/start-escape.sh
+../pract05/start-escape.sh
