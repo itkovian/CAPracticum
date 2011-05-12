@@ -5,6 +5,20 @@ import java.io.IOException;
 
 public class CacheSim {
 
+  public static boolean isPowerOf2(int n) {
+    if (n == 1) {
+      return true;
+    }
+
+    if (n % 2 != 0) {
+      return false;
+    }
+    else {
+      return isPowerOf2(n / 2);
+    }
+  }
+
+
 	public static void main(String[] args) {
 
 		// If the number of command line arguments is not right
@@ -18,23 +32,21 @@ public class CacheSim {
 			// argument. If it is not a power of two, then print an error
 			// message followed by usage instructions and bail out.
 			int blocks = Integer.parseInt(args[0]);
-			double bits = Math.log(blocks) / Math.log(2);
-			if (bits != (int) bits) {
-				System.out.println("Error: <blocks> must be a power of 2.");
-				System.out.println();
+      if(! isPowerOf2 (blocks)) {
+				System.err.println("Error: <blocks> must be a power of 2.");
+				System.err.println();
 				printUsage();
-			}
+      }
 
 			// Get the size of a cache block in bytes from the second
 			// command line parameter. If it is not a power of two, then
 			// print an error message, usage instructions and then bail.
 			int size = Integer.parseInt(args[1]);
-			bits = Math.log(size) / Math.log(2);
-			if (bits != (int) bits) {
-				System.out.println("Error: <size> must be a power of 2.");
-				System.out.println();
+      if(! isPowerOf2 (size)) {
+				System.err.println("Error: <size> must be a power of 2.");
+				System.err.println();
 				printUsage();
-			}
+      }
 
 			// process parameters
 			String input = args[2];
@@ -94,16 +106,13 @@ public class CacheSim {
 	}
 
     private static void printUsage() {
-        System.out
-                .println("Usage: java CacheSim <blocks> <size> <input> [<assoc>] [ways]");
-        System.out
-                .println("  <blocks>: # of cache blocks (must be a power of 2).");
-        System.out
-                .println("    <size>: Size of each cache block (must be a power of 2).");
-        System.out.println("    <input>: Choose from rowMajor, columnMajor, matrixMultiply or matrixTiledMultiply");
-        System.out
-                .println("   <assoc>: Omitted or false for direct mapped cache,");
-        System.out.println("            true for fully associative cache.");
+        System.out.println("Usage: java CacheSim <blocks> <block_size> <input> [<assoc>] [ways]");
+        System.out.println("    <blocks>: # of cache blocks (must be a power of 2).");
+        System.out.println("<block_size>: Size of each cache block (must be a power of 2).");
+        System.out.println("     <input>: Choose from rowMajor, columnMajor, matrixMultiply or matrixTiledMultiply");
+        System.out.println("     <assoc>: Omitted or false for direct mapped cache,");
+        System.out.println("              true for fully associative cache,");
+        System.out.println("      <ways>: Number of ways in a set-associative cache.");
         System.exit(-1);
     }
 
@@ -201,7 +210,7 @@ public class CacheSim {
 		System.out.println("/////////////////////////////// Output Matrix //////////////////////////////////");
 		System.out.println("////////////////////////////////////////////////////////////////////////////////");
 		// B 
-		System.out.println("A=\t");
+		System.out.println("B=\t");
 
 		for (int i=0;i<size;i++)
 		{	
@@ -298,7 +307,7 @@ public class CacheSim {
 		System.out.println("/////////////////////////////// Output Matrix //////////////////////////////////");
 		System.out.println("////////////////////////////////////////////////////////////////////////////////");
 		// B 
-		System.out.println("A=\t");
+		System.out.println("B=\t");
 
 		for (int i=0;i<size;i++)
 		{	
@@ -387,7 +396,7 @@ public class CacheSim {
 			{
 				for (int k=0;k<size;k++)
 				{
-					C[ i ][ j ] = C[ i ][ j ]+ A[ i ][ k ]* B[ k ][ j ];
+					C[ i ][ j ] = C[ i ][ j ] + A[ i ][ k ] * B[ k ][ j ];
 
 					// Read C[k][i]
 					requests++;
@@ -530,7 +539,7 @@ public class CacheSim {
 						{
 							for (int k=k0;k<(k0+tilesize);k++)
 							{
-								C[ i ][ j ] = C[ i ][ j ]+ A[ i ][ k ]* B[ k ][ j ];
+								C[ i ][ j ] = C[ i ][ j ] + A[ i ][ k ] * B[ k ][ j ];
 
 								// Read C[i][j]
 								requests++;
