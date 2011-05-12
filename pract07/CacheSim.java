@@ -4,13 +4,27 @@ import java.io.BufferedReader;
 import java.io.IOException;
 
 /**
- * Cachesimulator. Het programma heeft standaard de volgende argumenten als invoer. 
- * Het aantal cacheblokken, 
- * De grootte van elk cacheblok (in bytes),
- * Het type van de cache,
- * Bestandsnaam (met geheugenreferenties).
+ * Cachesimulator. The program has by default the following command line arguments:
+ * The number of cache blocks,
+ * The size of each cach block in bytes,
+ * The access pattern name (patroon1 or patroon2),
+ * The cache type (true or false for an associative or direct mapped cache, respectively). iOptional and defaults to false,
+ * The associativity (optional, only used if the previous argument is set to true).
  */
 public class CacheSim {
+
+  public static boolean isPowerOf2(int n) {
+    if (n == 1) {
+      return true;
+    }
+
+    if (n % 2 != 0) {
+      return false;
+    }
+    else {
+      return isPowerOf2(n / 2);
+    }
+  }
 
 	public static void main(String[] args) {
 
@@ -19,32 +33,35 @@ public class CacheSim {
 		if (args.length != 3 && args.length != 4 && args.length != 5) {
 			printUsage();
 		}
-		else { // Run the siulation.
+		else { // Run the simulation.
 
 			// Get the number of cache blocks from the first command line
 			// argument. If it is not a power of two, then print an error
 			// message followed by usage instructions and bail out.
 			int blocks = Integer.parseInt(args[0]);
-			double bits = Math.log(blocks) / Math.log(2);
-			if (bits != (int) bits) {
-				System.out.println("Error: <blocks> must be a power of 2.");
-				System.out.println();
+      if(! isPowerOf2 (blocks)) {
+				System.err.println("Error: <blocks> must be a power of 2.");
+				System.err.println();
 				printUsage();
-			}
+      }
 
 			// Get the size of a cache block in bytes from the second
 			// command line parameter. If it is not a power of two, then
 			// print an error message, usage instructions and then bail.
 			int size = Integer.parseInt(args[1]);
-			bits = Math.log(size) / Math.log(2);
-			if (bits != (int) bits) {
-				System.out.println("Error: <size> must be a power of 2.");
-				System.out.println();
+      if(! isPowerOf2 (size)) {
+				System.err.println("Error: <size> must be a power of 2.");
+				System.err.println();
 				printUsage();
-			}
+      }
 
 			// Get the access pattern identifier
 			String input = args[2];
+      if(! (input.equals("patroon1") || input.equals("patroon2") || input.equals("patroon3"))) {
+        System.err.println("Error: pattern should be one of patroon1 or patroon2 or patroon3");
+        System.err.println();
+        printUsage();
+      }
 
 			// Get the cache configuration parameters
 			boolean assoc = false;
@@ -105,7 +122,9 @@ public class CacheSim {
 		System.out.println("\t<block_size>       : Size of each cache block (must be a power of 2).");
 		System.out.println("\t<pattern>          : Access pattern selection [data1 | data2 | trans].");
 		System.out.println("\t<assoc>            : Omitted or false for direct mapped cache,");
-		System.out.println("            true for fully associative cache.");
+		System.out.println("\t                     true for fully associative cache.");
+    System.out.println("\t<ways>             : number of ways for an associative cache. only provided");
+    System.out.println("\t                     for a n-way associative cache.");   
 		System.exit(-1);
 	}
 
@@ -123,7 +142,7 @@ public class CacheSim {
 			base = 8*size*size + 96 ;
 		else
 		{
-			System.out.println("Matrix " + matrix + "not recognized, please use A, B or C");
+			System.err.println("Matrix " + matrix + "not recognized, please use A, B or C");
 			System.exit(-1);
 		}
 
@@ -192,11 +211,9 @@ public class CacheSim {
 		cache.request(-1);
 		
 		// Report the results of the simulation.
-		System.out.println("//////////////////////////////// Statistics ////////////////////////////////////");
 		System.out.println("Total Requests: " + requests);
 		System.out.println("    Cache Hits: " + hits);
 		System.out.println("      Hit Rate: " + ((double) hits)/ requests);
-		System.out.println("////////////////////////////////////////////////////////////////////////////////");
 
 	}
 
@@ -223,7 +240,7 @@ public class CacheSim {
 			}
 		}
 	
-		// Now fill B such that B[i][j] equals the sum of all elements of row i and column j of A
+		// Now fill B such that B[i][j] equals A[i][j];
 		for (int i=0;i<size;i++)
 		{	
 			for (int j=0;j<size;j++)
@@ -236,17 +253,13 @@ public class CacheSim {
 			}
 		}
 
+		// Force a cache dump (put the following line in comment to prevent the dump).
+		cache.request(-1);
 			
 		// Report the results of the simulation.
-		System.out.println("//////////////////////////////// Statistics ////////////////////////////////////");
 		System.out.println("Total Requests: " + requests);
 		System.out.println("    Cache Hits: " + hits);
 		System.out.println("      Hit Rate: " + ((double) hits)/ requests);
-		System.out.println("////////////////////////////////////////////////////////////////////////////////");
-
-		// Force a cache dump (put the following line in comment to prevent the dump).
-		cache.request(-1);
-
 
 	}
 
@@ -288,11 +301,9 @@ public class CacheSim {
 		cache.request(-1);
 		
 		// Report the results of the simulation.
-		System.out.println("//////////////////////////////// Statistics ////////////////////////////////////");
 		System.out.println("Total Requests: " + requests);
 		System.out.println("    Cache Hits: " + hits);
 		System.out.println("      Hit Rate: " + ((double) hits)/ requests);
-		System.out.println("////////////////////////////////////////////////////////////////////////////////");
 
 	}
 
