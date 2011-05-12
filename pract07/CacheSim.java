@@ -174,138 +174,138 @@ public class CacheSim {
 		int counter = 1;
 		for (int i=0;i<size;i++)
 		{	
-			for (int j=0;j<size;j++)
-			{
-				A[ i ][ j ] = counter++;
-				B[ i ][ j ] = 0;
-			}
-		}
-	
-		// Now fill B such that B[i][j] equals the sum of all elements of row i and column j of A
-		for (int i=0;i<size;i++)
-		{	
-			for (int j=0;j<size;j++)
-			{ 
-				// assuming this fits in a registers and does not generate a cache access.
-				int sum = -A[i][j];
-				for (int ii=0;ii<size;ii++)
-				{
-					sum+= A[ii][j];
-					requests++;
-					if (sendCacheRequest(cache, "A", ii, j, size)) hits++ ;
-				}
-				for (int jj=0;jj<size;jj++)
-				{
-					sum += A[i][jj];
-					requests++;
-					if (sendCacheRequest(cache, "A", i, jj, size)) hits++ ;
-				}
+      for (int j=0;j<size;j++)
+      {
+        A[ i ][ j ] = counter++;
+        B[ i ][ j ] = 0;
+      }
+    }
 
-				B[ i ][ j ] = sum;
-				requests++;
-				if(sendCacheRequest(cache, "B", i, j, size)) hits++ ;
-			}
-		}
+    // Now fill B such that B[i][j] equals the sum of all elements of row i and column j of A
+    for (int i=0;i<size;i++)
+    {	
+      for (int j=0;j<size;j++)
+      { 
+        // assuming this fits in a registers and does not generate a cache access.
+        int sum = -A[i][j];
+        for (int ii=0;ii<size;ii++)
+        {
+          sum+= A[ii][j];
+          requests++;
+          if (sendCacheRequest(cache, "A", ii, j, size)) hits++ ;
+        }
+        for (int jj=0;jj<size;jj++)
+        {
+          sum += A[i][jj];
+          requests++;
+          if (sendCacheRequest(cache, "A", i, jj, size)) hits++ ;
+        }
 
-		// Force a cache dump (put the following line in comment to prevent the dump).
-		cache.request(-1);
-		
-		// Report the results of the simulation.
-		System.out.println("Total Requests: " + requests);
-		System.out.println("    Cache Hits: " + hits);
-		System.out.println("      Hit Rate: " + ((double) hits)/ requests);
+        B[ i ][ j ] = sum;
+        requests++;
+        if(sendCacheRequest(cache, "B", i, j, size)) hits++ ;
+      }
+    }
 
-	}
+    // Force a cache dump (put the following line in comment to prevent the dump).
+    cache.request(-1);
+
+    // Report the results of the simulation.
+    System.out.println("Total Requests: " + requests);
+    System.out.println("    Cache Hits: " + hits);
+    System.out.println("      Hit Rate: " + ((double) hits)/ requests);
+
+  }
 
 
-	// transpose access pattern: .
-	private static void pattern1(Cache cache, int size)
-	{
-		// Statistics
-		int requests = 0;
-		int hits = 0;
+  // transpose access pattern: .
+  private static void pattern1(Cache cache, int size)
+  {
+    // Statistics
+    int requests = 0;
+    int hits = 0;
 
-		// Input matrix
-		int A[][] = new int[size][size];
-		int B[][] = new int[size][size];
+    // Input matrix
+    int A[][] = new int[size][size];
+    int B[][] = new int[size][size];
 
-		// Initialize matrix
-		int counter = 1;
-		for (int i=0;i<size;i++)
-		{	
-			for (int j=0;j<size;j++)
-			{
-				A[ i ][ j ] = counter++;
-				B[ i ][ j ] = 0;
-			}
-		}
-	
-		// Now fill B such that B[i][j] equals A[i][j];
-		for (int i=0;i<size;i++)
-		{	
-			for (int j=0;j<size;j++)
-			{ 
-				B[ i ][ j ] = A[ j ][ i ];
-				requests++;
-				if(sendCacheRequest(cache, "A", j, i, size)) hits++ ;
-				requests++;
-				if(sendCacheRequest(cache, "B", i, j, size)) hits++ ;
-			}
-		}
+    // Initialize matrix
+    int counter = 1;
+    for (int i=0;i<size;i++)
+    {	
+      for (int j=0;j<size;j++)
+      {
+        A[ i ][ j ] = counter++;
+        B[ i ][ j ] = 0;
+      }
+    }
 
-		// Force a cache dump (put the following line in comment to prevent the dump).
-		cache.request(-1);
-			
-		// Report the results of the simulation.
-		System.out.println("Total Requests: " + requests);
-		System.out.println("    Cache Hits: " + hits);
-		System.out.println("      Hit Rate: " + ((double) hits)/ requests);
+    // Now fill B such that B[i][j] equals A[i][j];
+    for (int i=0;i<size;i++)
+    {	
+      for (int j=0;j<size;j++)
+      { 
+        B[ i ][ j ] = A[ j ][ i ];
+        requests++;
+        if(sendCacheRequest(cache, "A", j, i, size)) hits++ ;
+        requests++;
+        if(sendCacheRequest(cache, "B", i, j, size)) hits++ ;
+      }
+    }
 
-	}
+    // Force a cache dump (put the following line in comment to prevent the dump).
+    cache.request(-1);
 
-	// Matrix increment access pattern
-	private static void pattern3(Cache cache, int size)
-	{
-		// Statistics
-		int requests = 0;
-		int hits = 0;
+    // Report the results of the simulation.
+    System.out.println("Total Requests: " + requests);
+    System.out.println("    Cache Hits: " + hits);
+    System.out.println("      Hit Rate: " + ((double) hits)/ requests);
 
-		// Input matrix
-		int A[][] = new int[size][size];
+  }
 
-		// Initialize matrix
-		int counter = 1;
-		for (int i=0;i<size;i++)
-		{	
-			for (int j=0;j<size;j++)
-			{
-				A[ i ][ j ] = counter++;
-			}
-		}
-	
-		for (int i=0;i<size;i++)
-		{	
-			for (int j=0;j<size;j++)
-			{ 
-				A[ i ][ j ] = A[ i ][ j ]++;
-				// read
-				requests++;
-				if(sendCacheRequest(cache, "A", j, i, size)) hits++ ;
-				//write
-				requests++;
-				if(sendCacheRequest(cache, "A", j, i, size)) hits++ ;
-			}
-		}
+  // Matrix increment access pattern
+  private static void pattern3(Cache cache, int size)
+  {
+    // Statistics
+    int requests = 0;
+    int hits = 0;
 
-		// Force a cache dump (put the following line in comment to prevent the dump).
-		cache.request(-1);
-		
-		// Report the results of the simulation.
-		System.out.println("Total Requests: " + requests);
-		System.out.println("    Cache Hits: " + hits);
-		System.out.println("      Hit Rate: " + ((double) hits)/ requests);
+    // Input matrix
+    int A[][] = new int[size][size];
 
-	}
+    // Initialize matrix
+    int counter = 1;
+    for (int i=0;i<size;i++)
+    {	
+      for (int j=0;j<size;j++)
+      {
+        A[ i ][ j ] = counter++;
+      }
+    }
+
+    for (int i=0;i<size;i++)
+    {	
+      for (int j=0;j<size;j++)
+      { 
+        A[ i ][ j ] = A[ i ][ j ]++;
+        // read
+        requests++;
+        if(sendCacheRequest(cache, "A", j, i, size)) hits++ ;
+        //write
+        requests++;
+        if(sendCacheRequest(cache, "A", j, i, size)) hits++ ;
+      }
+    }
+
+    // Force a cache dump (put the following line in comment to prevent the dump).
+    cache.request(-1);
+
+    // Report the results of the simulation.
+    System.out.println("Total Requests: " + requests);
+    System.out.println("    Cache Hits: " + hits);
+    System.out.println("      Hit Rate: " + ((double) hits)/ requests);
+
+  }
 
 
 }
