@@ -3,13 +3,10 @@ import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.IOException;
 
+import org.apache.commons.cli.*;
+
 /**
- * Cachesimulator. The program has by default the following command line arguments:
- * The number of cache blocks,
- * The size of each cach block in bytes,
- * The access pattern name (patroon1 or patroon2),
- * The cache type (true or false for an associative or direct mapped cache, respectively). iOptional and defaults to false,
- * The associativity (optional, only used if the previous argument is set to true).
+ * Cachesimulator. Execute with an unknow argument to get help :-p
  */
 public class CacheSim {
 
@@ -26,154 +23,127 @@ public class CacheSim {
     }
   }
 
-	public static void main(String[] args) {
+  public static void main(String[] args) {
 
-		// If the number of command line arguments is not right
-		// print out usage instructions and bail out.
-		if (args.length != 3 && args.length != 4 && args.length != 5) {
-			printUsage();
-		}
-		else { // Run the simulation.
+    Option cacheOpt    = OptionBuilder.withArgName("cache").hasArgs().withDescription("Type of cache. One of directmapped, fullassociative, nwaysetassociative").create("cache");
+    Option blocksOpt   = OptionBuilder.withArgName("blocks").hasArg().isRequired().withDescription("").create("blocks");
+    Option linesizeOpt = OptionBuilder.withArgName("linesize").hasArg().isRequired().withDescription("").create("linesize");
+    Option assocOpt    = OptionBuilder.withArgName("assoc").hasArg().withDescription("Associativity of the cache. Ignored for a direct mapped cache and a fully associative cache.").create("assoc");
+    Option patternOpt  = OptionBuilder.withArgName("pattern").hasArg().isRequired().withDescription("Address pattern to simulate. Can by one of patroon1, patroon2 or patroon3").create("pattern");
 
-			// Get the number of cache blocks from the first command line
-			// argument. If it is not a power of two, then print an error
-			// message followed by usage instructions and bail out.
-			int blocks = Integer.parseInt(args[0]);
-      if(! isPowerOf2 (blocks)) {
-				System.err.println("Error: <blocks> must be a power of 2.");
-				System.err.println();
-				printUsage();
+    Options options = new Options();
+    options.addOption(cacheOpt);
+    options.addOption(blocksOpt);
+    options.addOption(linesizeOpt);
+    options.addOption(assocOpt);
+    options.addOption(patternOpt);
+
+    HelpFormatter formatter = new HelpFormatter();
+
+    CommandLineParser parser = new GnuParser();
+    CommandLine line = null;
+    try {
+      line = parser.parse(options, args);
+    }
+    catch( ParseException exp ) {
+      System.err.println("Parsing of the command line has failed. Here's why: " + exp.getMessage());
+      formatter.printHelp("CacheSim", options);
+      System.exit(-1);
+    }
+
+    // The cache should be one of the specified types.
+    Cache cache = null;
+    try {
+      int blocks = Integer.parseInt(line.getOptionValue("blocks"));
+      int linesize = Integer.parseInt(line.getOptionValue("linesize"));
+      if(! isPowerOf2(blocks) || ! isPowerOf2(linesize)) {
+        throw new Exception("Whoops. blocks and linesize must be powers of 2.");
+      }
+      String ctype = line.getOptionValue("cache");
+      if(ctype.equals("directmapped")) {
+        cache = new DirectMappedCache(blocks, linesize);
+      }
+      else if(ctype.equals("fullyassociative")) {
+        cache = new FullyAssociativeCache(blocks, linesize);
+      }
+      else if(ctype.equals("nwaysetassociative")) {
+        int assoc = Integer.parseInt(line.getOptionValue("assoc"));
+        if(blocks % assoc != 0) {
+          throw new Exception("Whoops. blocks should be a multiple of the associativity in a n-way set associative cache");
+        }
+        cache = new NWayAssociativeCache(blocks / assoc, linesize, assoc);
+      }
+      else {
+        throw new Exception("Just because I can.");
       }
 
-			// Get the size of a cache block in bytes from the second
-			// command line parameter. If it is not a power of two, then
-			// print an error message, usage instructions and then bail.
-			int size = Integer.parseInt(args[1]);
-      if(! isPowerOf2 (size)) {
-				System.err.println("Error: <size> must be a power of 2.");
-				System.err.println();
-				printUsage();
+      String pattern = line.getOptionValue("pattern");
+      if(pattern.equals("patroon1")) {
+        pattern1(cache, 32);
       }
-
-			// Get the access pattern identifier
-			String input = args[2];
-      if(! (input.equals("patroon1") || input.equals("patroon2") || input.equals("patroon3"))) {
-        System.err.println("Error: pattern should be one of patroon1 or patroon2 or patroon3");
-        System.err.println();
-        printUsage();
+      else if(pattern.equals("patroon2")) {
+        pattern2(cache, 32);
       }
+      else if(pattern.equals("patroon3")) {
+        pattern3(cache, 32);
+      }
+      else {
+        throw new Exception("Just because I can too.");
+      }
+    }
+    catch(Exception exp) {
+      System.err.println(exp.getMessage());
+      formatter.printHelp("CacheSim", options);
+      System.exit(-1);
+    }
 
-			// Get the cache configuration parameters
-			boolean assoc = false;
-			boolean nway = false;
-			int ways = 0;
-			if (args.length == 4) {
-				assoc = Boolean.valueOf(args[3]).booleanValue();
-			}
-			if (args.length == 5) {
-				assoc = true;
-				nway = true;
-				ways = Integer.valueOf(args[4]);
-			}
-
-			// Create the appropriate type of cache.
-			Cache cache;
-			if (!assoc) {
-				cache = new DirectMappedCache(blocks, size);
-			}
-			else {
-				if (nway) {
-					cache = new NWayAssociativeCache(blocks, size, ways);
-				} else {
-					cache = new FullyAssociativeCache(blocks, size);
-				}
-			}
-
-			int requests = 0;
-			int hits = 0;
-
-			if (input.compareTo("patroon1")==0)
-			{
-				System.out.println("Memory Access Pattern: pattern1");
-				pattern1(cache, 32);
-			}
-			else if (input.compareTo("patroon2")==0)
-			{
-				System.out.println("Memory Access Pattern: pattern2");
-				pattern2(cache, 32);
-			}
-			else if (input.compareTo("patroon3")==0)
-			{
-				System.out.println("Memory Access Pattern: pattern3");
-				pattern3(cache, 32);
-			}
-			else
-			{
-				System.out.println("bad configuration parameter");
-				System.exit(-1);
-			}
-
-		}
-	}
-
-	private static void printUsage() {
-		System.out.println("Usage: java CacheSim <blocks_per_set> <block_size> <pattern> [<assoc>]");
-		System.out.println("\t<blocks_per_set>   : # of cache blocks (must be a power of 2) per set.");
-		System.out.println("\t<block_size>       : Size of each cache block (must be a power of 2).");
-		System.out.println("\t<pattern>          : Access pattern selection [data1 | data2 | trans].");
-		System.out.println("\t<assoc>            : Omitted or false for direct mapped cache,");
-		System.out.println("\t                     true for fully associative cache.");
-    System.out.println("\t<ways>             : number of ways for an associative cache. only provided");
-    System.out.println("\t                     for a n-way associative cache.");   
-		System.exit(-1);
-	}
+  }
 
 
-	private static boolean sendCacheRequest(Cache cache, String matrix, int i, int j, int size)
-	{
-		// different matrices are located in different places in the memory, this
-		// is modelled by using a matrix-specific base address.
-		int base = 0;
-		if (matrix.compareTo("A")==0)
-			base = 0;
-		else if (matrix.compareTo("B")==0)
-			base = 4*size*size + 64;
-		else if (matrix.compareTo("C")==0)
-			base = 8*size*size + 96 ;
-		else
-		{
-			System.err.println("Matrix " + matrix + "not recognized, please use A, B or C");
-			System.exit(-1);
-		}
+  private static boolean sendCacheRequest(Cache cache, String matrix, int i, int j, int size) {
+    // different matrices are located in different places in the memory, this
+    // is modelled by using a matrix-specific base address.
+    int base = 0;
+    if (matrix.compareTo("A")==0)
+      base = 0;
+    else if (matrix.compareTo("B")==0)
+      base = 4*size*size + 64;
+    else if (matrix.compareTo("C")==0)
+      base = 8*size*size + 96 ;
+    else
+    {
+      System.err.println("Matrix " + matrix + "not recognized, please use A, B or C");
+      System.exit(-1);
+    }
 
 
-		// Address is calculated (multiply by 4 assumes int equals 4B).
-		int address = base + 4*((i * size) + j);
+    // Address is calculated (multiply by 4 assumes int equals 4B).
+    int address = base + 4*((i * size) + j);
 
-		boolean hit = cache.request(address);
+    boolean hit = cache.request(address);
 
-		// Print out the address  (comment out the following line if needed)
-		//System.out.println(matrix + ": " +  address + (hit ? "" : " *"));
+    // Print out the address  (comment out the following line if needed)
+    //System.out.println(matrix + ": " +  address + (hit ? "" : " *"));
 
-		return hit;
-	}
+    return hit;
+  }
 
 
-	// Data1 access pattern: .
-	private static void pattern2(Cache cache, int size)
-	{
-		// Statistics
-		int requests = 0;
-		int hits = 0;
+  // Data1 access pattern: .
+  private static void pattern2(Cache cache, int size)
+  {
+    // Statistics
+    int requests = 0;
+    int hits = 0;
 
-		// Input matrix
-		int A[][] = new int[size][size];
-		int B[][] = new int[size][size];
+    // Input matrix
+    int A[][] = new int[size][size];
+    int B[][] = new int[size][size];
 
-		// Initialize matrix
-		int counter = 1;
-		for (int i=0;i<size;i++)
-		{	
+    // Initialize matrix
+    int counter = 1;
+    for (int i=0;i<size;i++)
+    {	
       for (int j=0;j<size;j++)
       {
         A[ i ][ j ] = counter++;
