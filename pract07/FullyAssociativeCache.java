@@ -1,6 +1,6 @@
 public class FullyAssociativeCache implements Cache {
 
-  public FullyAssociativeCache(int sets, int linesize) {
+  public FullyAssociativeCache(int blocks, int linesize) {
   }
 
   /**
